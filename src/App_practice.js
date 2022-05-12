@@ -34,81 +34,82 @@ const initialState = {
   ]
 };
 
-function reducer(state, action) {
-  switch (action.type) {
-    case 'CHANGE_INPUT':
-      return {
+function reducer(state, action){
+  switch(action.type){
+    case 'change':
+      return{
         ...state,
-        inputs: {
+        inputs:{
           ...state.inputs,
-          [action.name]: action.value
+          [action.name]:action.value
         }
       };
-    case 'CREATE_USER':
-      return {
-        inputs: initialState.inputs,
-        users: state.users.concat(action.user)
+    case 'create':
+      return{
+        inputs : initialState.inputs,
+        users:state.users.concat(action.user)
       };
-    case 'REMOVE_USER':
+    case 'remove':
       return{
         ...state,
-        users:state.users.filter(user=>user.id !== action.id)
-      };
-    case 'TOGGLE_NAME':
+        users:state.users.filter(user => user.id !== action.id)
+      }
+    case 'toggle':
       return{
         ...state,
-        users: state.users.map(user => 
-          user.id === action.id?{...user, active: !user.active} : user)
-      };
+        users: state.users.map(user=>user.id === action.id? {...user, active: !user.active}: user)
+      }
     default:
-      return state;
+      return{
+        state
+      }
   }
 }
+
 function App() {
-  const [state, dispatch] = useReducer(reducer,initialState); //state와 dispatch가 render()로 들어간듯
+  const [state, dispatch] = useReducer(reducer,initialState);
+  //state 에서 필요한 값들을 비구조화 할당 문법을 사용하여 추출
   const nextId = useRef(4);
+  const {users} = state;
+  const {username,email} = state.inputs;
 
-  const {users} =state;
-  const {username, email} = state.inputs;
-
-  const onChange = useCallback(e => {
-    const { name, value } = e.target;
+  const onChange = useCallback(e=>{
+    const{name,value}=e.target;
     dispatch({
-      type: 'CHANGE_INPUT',
-      name,
-      value
+      type :'change',
+      name, value
     });
-  }, []);
+  },[]);
 
   const onCreate = useCallback(()=>{
     dispatch({
-      type: 'CREATE_USER',
-      user : {
+      type:'create',
+      user:{
         id: nextId.current,
-        username, email
+        username,email
       }
-    });
+    })
+    nextId.current +=1 
   },[username,email]);
 
   const onRemove = useCallback(id=>{
     dispatch({
-      type: 'REMOVE_USER',
+      type: 'remove',
+      id
+    })
+  },[]);
+  const onToggle = useCallback(id=>{
+    dispatch({
+      type:'toggle',
       id
     })
   },[]);
 
-  const onToggle = useCallback(id=>{
-    dispatch({
-      type: 'TOGGLE_NAME',
-      id
-    })
-  },[]);
 
   const count = useMemo(()=>countActiveUsers(users),[users]);
   return (
     <>
-      <CreateUser username={username} email={email}
-      onChange={onChange} onCreate={onCreate} />
+      <CreateUser username={username} email={email} onChange={onChange} onCreate={onCreate}/>
       <UserList userList={users} onRemove={onRemove} onToggle={onToggle}/>
       <div>활성사용자 수 : {count}</div>
     </>
